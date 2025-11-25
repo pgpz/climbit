@@ -1,0 +1,96 @@
+local spawner = workspace.Enemy_Spawner
+local enemyModel = game.ReplicatedStorage.Rig
+local spawnTime = 500
+
+local RUN_SPEED = 10
+local DAMAGE = 20
+local ATTACK_RANGE = 5
+local ATTACK_COOLDOWN = 3
+local STUN_DURATION = 2.5
+local HITS_TO_STUN = 3
+
+
+local playerHits = {}
+
+local function getClosestPlayer(enemy)
+	local closestPlayer = nil
+	local closestDistance = math.huge
+
+	for _, player in ipairs(game.Players:GetPlayers()) do
+		local char = player.Character
+		if char and char:FindFirstChild("HumanoidRootPart") then
+			local dist = (char.HumanoidRootPart.Position - enemy.PrimaryPart.Position).Magnitude
+			if dist < closestDistance then
+				closestDistance = dist
+				closestPlayer = player
+			end
+		end
+	end
+
+	return closestPlayer
+end
+
+local function startEnemyAI(enemy)
+	local humanoid = enemy:FindFirstChild("Humanoid")
+	if not humanoid then
+		warn("enemy missing humanoid!!!!")
+		return
+	end
+
+	humanoid.WalkSpeed = RUN_SPEED
+	local lastAttackTime = 0
+
+	game:GetService("RunService").Heartbeat:Connect(function()
+		if not enemy.Parent then return end
+
+		local closestPlayer = getClosestPlayer(enemy)
+		if closestPlayer then
+			local char = closestPlayer.Character
+			if char and char:FindFirstChild("HumanoidRootPart") then
+				local targetPos = char.HumanoidRootPart.Position
+				humanoid:MoveTo(targetPos)
+
+				local now = tick()
+				local targetHum = char:FindFirstChild("Humanoid")
+				local distance = (enemy.PrimaryPart.Position - char.HumanoidRootPart.Position).Magnitude
+
+				if distance <= ATTACK_RANGE and now - lastAttackTime >= ATTACK_COOLDOWN then
+					if targetHum then
+						
+						targetHum:TakeDamage(DAMAGE)
+						lastAttackTime = now
+
+						playerHits[closestPlayer] = (playerHits[closestPlayer] or 0) + 1
+
+						if playerHits[closestPlayer] >= HITS_TO_STUN then
+							playerHits[closestPlayer] = 0
+
+							local originalSpeed = targetHum.WalkSpeed
+							targetHum.WalkSpeed = 0
+							task.delay(STUN_DURATION, function()
+								if targetHum then
+									targetHum.WalkSpeed = originalSpeed
+									
+							
+								end
+							end)
+						end
+					end
+				end
+			end
+		end
+	end)
+end
+
+local function spawnEnemy()
+	local enemy = enemyModel:Clone()
+	enemy.Parent = workspace
+	enemy.PrimaryPart = enemy:WaitForChild("HumanoidRootPart")
+
+	startEnemyAI(enemy)
+end
+
+while true do
+	spawnEnemy()
+	task.wait(spawnTime)
+end
