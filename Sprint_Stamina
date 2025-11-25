@@ -1,0 +1,70 @@
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local MAX_STAMINA = 100
+local STAMINA_DECAY_PERCENT = 0.05
+local DECAY_INTERVAL = 5
+local STAMINA_REGEN_RATE = 8
+local WALK_SPEED = 16
+local SPRINT_SPEED = 24
+
+local player = Players.LocalPlayer
+local stamina = MAX_STAMINA
+local sprinting = false
+local decayTimer = 0
+
+local char
+local hum
+
+local function setupCharacter(character)
+	char = character
+	hum = char:WaitForChild("Humanoid")
+	hum.WalkSpeed = WALK_SPEED
+end
+
+if player.Character then
+	setupCharacter(player.Character)
+end
+player.CharacterAdded:Connect(setupCharacter)
+
+UIS.InputBegan:Connect(function(input, processed)
+	if processed then return end
+	if input.KeyCode == Enum.KeyCode.LeftShift then
+		sprinting = true
+	end
+end)
+
+UIS.InputEnded:Connect(function(input)
+	if input.KeyCode == Enum.KeyCode.LeftShift then
+		sprinting = false
+	end
+end)
+
+RunService.RenderStepped:Connect(function(dt)
+	if not hum then return end
+
+	if sprinting then
+		decayTimer += dt
+		if decayTimer >= DECAY_INTERVAL then
+			decayTimer = 0
+			stamina -= MAX_STAMINA * STAMINA_DECAY_PERCENT
+			if stamina <= 0 then
+				stamina = 0
+				sprinting = false
+			end
+		end
+	else
+		if stamina < MAX_STAMINA then
+			stamina += STAMINA_REGEN_RATE * dt
+			if stamina > MAX_STAMINA then stamina = MAX_STAMINA end
+		end
+		decayTimer = 0
+	end
+
+	if sprinting and stamina > 0 then
+		hum.WalkSpeed = SPRINT_SPEED
+	else
+		hum.WalkSpeed = WALK_SPEED
+	end
+end)
