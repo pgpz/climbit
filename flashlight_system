@@ -1,0 +1,44 @@
+local Character = script.Parent
+local Humanoid = Character:WaitForChild("Humanoid")
+local HRP = Character:WaitForChild("HumanoidRootPart")
+
+local FlashlightModule = require("FlashlightModule")
+local CAS = game:GetService("ContextActionService")
+local On = false
+local Debounce = false
+
+local function ToggleFlashlight(actionName, inputState)
+	if inputState ~= Enum.UserInputState.Begin then return end
+	if Debounce then return end
+	Debounce = true
+	
+	if Humanoid.Health <= 0 then
+		Debounce = false
+		return
+	end
+	
+	On = not On
+	
+	if On then
+		FlashlightModule.CreateFlashlight(HRP)
+		CAS:SetTitle("Flashlight", "Off")
+	else
+		FlashlightModule.RemoveFlashlight(HRP)
+		CAS:SetTitle("Flashlight", "On")
+	end
+	
+	task.wait(0.25)
+	Debounce = false
+end
+
+
+Humanoid.Died:Connect(function()
+	if On then
+		FlashlightModule.RemoveFlashlight(HRP)
+	end
+end)
+
+
+CAS:BindAction("Flashlight", ToggleFlashlight, true, Enum.KeyCode.F, Enum.KeyCode.ButtonB)
+CAS:SetPosition("Flashlight", UDim2.new(0.2, 105, 0.2, 0))
+CAS:SetTitle("Flashlight", "On")
