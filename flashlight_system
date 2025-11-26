@@ -2,7 +2,7 @@ local Character = script.Parent
 local Humanoid = Character:WaitForChild("Humanoid")
 local HRP = Character:WaitForChild("HumanoidRootPart")
 
-local FlashlightModule = require("FlashlightModule")
+local FlashlightModule = require(game.ReplicatedStorage:WaitForChild("FlashlightModule"))
 local CAS = game:GetService("ContextActionService")
 local On = false
 local Debounce = false
