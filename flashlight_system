@@ -7,6 +7,12 @@ local CAS = game:GetService("ContextActionService")
 local On = false
 local Debounce = false
 
+local Battery = Character:WaitForChild("FlashlightBattery")
+
+local DRAIN_RATE = 0.5
+local RECHARGE_RATE = 0.25
+local AUTO_RECHARGE = true
+
 local function ToggleFlashlight(actionName, inputState)
 	if inputState ~= Enum.UserInputState.Begin then return end
 	if Debounce then return end
@@ -17,7 +23,7 @@ local function ToggleFlashlight(actionName, inputState)
 		return
 	end
 	
-	On = not On
+	On = not On 
 	
 	if On then
 		FlashlightModule.CreateFlashlight(HRP)
@@ -42,3 +48,32 @@ end)
 CAS:BindAction("Flashlight", ToggleFlashlight, true, Enum.KeyCode.F, Enum.KeyCode.ButtonB)
 CAS:SetPosition("Flashlight", UDim2.new(0.2, 105, 0.2, 0))
 CAS:SetTitle("Flashlight", "On")
+
+task.spawn(function()
+	while true do
+		task.wait(1)
+		
+		if On then
+			Battery.Value -= DRAIN_RATE
+			
+			if Battery.Value < 0 then
+				Battery.Value = 0
+			end
+			
+			if Battery.Value == 0 and On then
+				On = false
+				FlashlightModule.RemoveFlashlight(HRP)
+				game.ContextActionService:SetTitle("Flashlight", "On")
+			end
+
+		elseif AUTO_RECHARGE then
+			-- Recharge when OFF
+			if Battery.Value < 100 then
+				Battery.Value += RECHARGE_RATE
+				if Battery.Value > 100 then
+					Battery.Value = 100
+				end
+			end
+		end
+	end
+end)
