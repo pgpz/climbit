@@ -1,0 +1,5 @@
+local Character = script.Parent
+local Battery = Instance.new("NumberValue")
+Battery.Name = "FlashlightBattery"
+Battery.Value = 100
+Battery.Parent = Character
