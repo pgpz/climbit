@@ -23,7 +23,12 @@ local function ToggleFlashlight(actionName, inputState)
 		return
 	end
 	
-	On = not On 
+	if not On and Battery.Value <= 35 then -- u can change if u want it to not turn on till higher %
+		Debounce = false
+		return
+	end
+	
+	On = not On
 	
 	if On then
 		FlashlightModule.CreateFlashlight(HRP)
@@ -37,12 +42,38 @@ local function ToggleFlashlight(actionName, inputState)
 	Debounce = false
 end
 
+-- comments below is for when u can turn on/off flashlight at 0%, not optimal but there if u want it
 
-Humanoid.Died:Connect(function()
-	if On then
-		FlashlightModule.RemoveFlashlight(HRP)
-	end
-end)
+--local function ToggleFlashlight(actionName, inputState)
+--	if inputState ~= Enum.UserInputState.Begin then return end
+--	if Debounce then return end
+--	Debounce = true
+	
+--	if Humanoid.Health <= 0 then
+--		Debounce = false
+--		return
+--	end
+	
+--	On = not On 
+	
+--	if On then
+--		FlashlightModule.CreateFlashlight(HRP)
+--		CAS:SetTitle("Flashlight", "Off")
+--	else
+--		FlashlightModule.RemoveFlashlight(HRP)
+--		CAS:SetTitle("Flashlight", "On")
+--	end
+	
+--	task.wait(0.25)
+--	Debounce = false
+--end
+
+
+--Humanoid.Died:Connect(function()
+--	if On then
+--		FlashlightModule.RemoveFlashlight(HRP)
+--	end
+--end)
 
 
 CAS:BindAction("Flashlight", ToggleFlashlight, true, Enum.KeyCode.F, Enum.KeyCode.ButtonB)
