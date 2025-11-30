@@ -1,0 +1,6 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local event = ReplicatedStorage:WaitForChild("UpgradeEvent")
+
+script.Parent.MouseButton1Click:Connect(function()
+	event:FireServer("Speed")
+end)
