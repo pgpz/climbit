@@ -1,0 +1,13 @@
+local player = game.Players.LocalPlayer
+local upgrades = player:WaitForChild("Upgrades")
+local speedLevel = upgrades:WaitForChild("Speed")
+
+local config = require(game.ReplicatedStorage.UpgradeConfigs.Speed)
+local humanoid = script.Parent:WaitForChild("Humanoid")
+
+local function updateSpeed()
+	humanoid.WalkSpeed = config.StartValue + (speedLevel.Value - 1) * config.IncreasePerLevel
+end
+
+speedLevel.Changed:Connect(updateSpeed)
+updateSpeed()
