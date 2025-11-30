@@ -1,0 +1,8 @@
+ local Upgrade = {}
+
+Upgrade.StartValue = 1000
+Upgrade.BaseCost = 50
+Upgrade.CostMultiplier = 0.05
+Upgrade.IncreasePerLevel = 0.35
+
+return Upgrade
