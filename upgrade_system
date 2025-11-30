@@ -1,0 +1,68 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local upgradesFolder = ReplicatedStorage:WaitForChild("UpgradeConfigs")
+
+Players.PlayerAdded:Connect(function(player)
+	local leaderstats = Instance.new("Folder")
+	leaderstats.Name = "leaderstats"
+	leaderstats.Parent = player
+
+	local money = Instance.new("IntValue")
+	money.Name = "Coins"
+	money.Value = 1
+	money.Parent = leaderstats
+
+	local upgrades = Instance.new("Folder")
+	upgrades.Name = "Upgrades"
+	upgrades.Parent = player
+
+	for _, config in ipairs(upgradesFolder:GetChildren()) do
+		local level = Instance.new("IntValue")
+		level.Name = config.Name
+		level.Value = 1
+		level.Parent = upgrades
+	end
+
+	player.CharacterAdded:Connect(function(char)
+		local humanoid = char:WaitForChild("Humanoid")
+
+		local speedLevel = player:WaitForChild("Upgrades"):WaitForChild("Speed")
+		local speedConfig = require(upgradesFolder:WaitForChild("Speed"))
+
+		local function updateSpeed()
+			humanoid.WalkSpeed = speedConfig.StartValue + (speedLevel.Value - 1) * speedConfig.IncreasePerLevel
+		end
+		
+		local jumpLevel = player:WaitForChild("Upgrades"):WaitForChild("Jump")
+		local jumpConfig = require(upgradesFolder:WaitForChild("Jump"))
+		
+		local function updateJump()
+			humanoid.JumpHeight = jumpConfig.StartValue + (jumpLevel.Value - 1) * jumpConfig.IncreasePerLevel1
+		end
+
+		speedLevel.Changed:Connect(updateSpeed)
+		updateSpeed()
+	end)
+end)
+
+local event = Instance.new("RemoteEvent")
+event.Name = "UpgradeEvent"
+event.Parent = ReplicatedStorage
+
+event.OnServerEvent:Connect(function(player, upgradeName)
+	local configFolder = upgradesFolder:FindFirstChild(upgradeName)
+	if not configFolder then return end
+
+	local config = require(configFolder)
+
+	local level = player:WaitForChild("Upgrades"):FindFirstChild(upgradeName)
+	local coins = player:WaitForChild("leaderstats"):WaitForChild("Coins")
+
+	local cost = math.floor(config.BaseCost * (config.CostMultiplier ^ (level.Value - 1)))
+
+	if coins.Value >= cost then
+		coins.Value -= cost
+		level.Value += 1
+		print("Upgraded", upgradeName, "to level", level.Value)
+	end
+end)
